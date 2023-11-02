@@ -21,8 +21,13 @@ function makeGallery(galleryItems) {
   }
   return itemsArr.join("");
 }
-const markup = makeGallery(galleryItems);
-galleryListEl.insertAdjacentHTML("afterbegin", markup);
+function renderGallery(galleryItems) {
+  const markup = makeGallery(galleryItems);
+  galleryListEl.insertAdjacentHTML("afterbegin", markup);
+}
+renderGallery(galleryItems);
+
+let instance;
 
 galleryListEl.addEventListener("click", onGalleryItemClick);
 
@@ -31,20 +36,24 @@ function onGalleryItemClick(event) {
   if (event.target.nodeName !== "IMG") {
     return;
   }
-  const instance = basicLightbox.create(`
+  instance = basicLightbox.create(
+    `
     <img src="${event.target.dataset.source}">
-    `);
-  instance.show();
-
-  document.addEventListener("keydown", onDocumentKeyEsc);
-  function onDocumentKeyEsc(event) {
-    if (event.code === "Escape") {
-      instance.close();
+    `,
+    {
+      onShow: (instance) => {
+        document.addEventListener("keydown", onDocumentKeyEsc);
+      },
+      onClose: (instance) => {
+        document.removeEventListener("keydown", onDocumentKeyEsc);
+      },
     }
-  }
+  );
+  instance.show();
+}
 
-  const visible = basicLightbox.visible();
-  if (!visible) {
-    document.removeEventListener("keydown", onDocumentKeyEsc);
+function onDocumentKeyEsc(event) {
+  if (event.code === "Escape") {
+    instance.close();
   }
 }
